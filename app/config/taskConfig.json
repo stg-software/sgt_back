@@ -1,0 +1,367 @@
+{
+  "Scrum": {
+    "story_points": {
+      "name": "Story Points:",
+      "type": "select",
+      "val": ["1", "2", "3", "5", "8", "13", "21"]
+    },
+    "sprint": {
+      "name": "Sprint:",
+      "type": "input",
+      "val": "txtnum"
+    },
+    "tipo_item": {
+      "name": "Tipo de Item:",
+      "type": "select",
+      "val": ["User Story", "Bug", "Task", "Epic", "Spike"]
+    },
+    "prioridad": {
+      "name": "Prioridad:",
+      "type": "select",
+      "val": ["Lowest", "Low", "Medium", "High", "Highest"]
+    },
+    "etiquetas": {
+      "name": "Etiquetas:",
+      "type": "multiselect",
+      "val": ["frontend", "backend", "database", "ui/ux", "api", "testing", "documentation"]
+    }
+  },
+  "Kanban Básico": {
+    "prioridad": {
+      "name": "Prioridad:",
+      "type": "select",
+      "val": ["Baja", "Media", "Alta", "Crítica"]
+    },
+    "tipo_tarea": {
+      "name": "Tipo de Tarea:",
+      "type": "select",
+      "val": ["Feature", "Mejora", "Bug", "Mantenimiento"]
+    },
+    "asignado": {
+      "name": "Asignado a:",
+      "type": "input",
+      "val": "txt"
+    },
+    "tiempo_estimado": {
+      "name": "Tiempo Estimado (horas):",
+      "type": "input",
+      "val": "num"
+    },
+    "bloqueadores": {
+      "name": "Bloqueadores:",
+      "type": "input",
+      "val": "none"
+    }
+  },
+  "Soporte IT": {
+    "tipo": {
+      "name": "Tipo de Solicitud:",
+      "type": "select",
+      "val": ["Incidencia", "Solicitud de Servicio", "Cambio"]
+    },
+    "tt": {
+      "name": "Número de Ticket:",
+      "type": "input",
+      "val": "txt"
+    },
+    "categoria": {
+      "name": "Categoría:",
+      "type": "select",
+      "val": ["Hardware", "Software", "Red", "Seguridad", "Accesos", "Correo", "Telefonía", "Otro"]
+    },
+    "prioridad": {
+      "name": "Prioridad:",
+      "type": "select",
+      "val": ["Baja", "Media", "Alta", "Crítica"]
+    },
+    "sla": {
+      "name": "SLA (horas):",
+      "type": "select",
+      "val": ["4", "8", "24", "48", "72"]
+    },
+    "afectado": {
+      "name": "Usuario Afectado:",
+      "type": "input",
+      "val": "txt"
+    },
+    "ubicacion": {
+      "name": "Ubicación:",
+      "type": "input",
+      "val": "txt"
+    },
+    "vpn": {
+      "name": "VPN:",
+      "type": "input",
+      "val": "txt"
+    }
+  },
+  "Marketing": {
+    "tipo_campana": {
+      "name": "Tipo de Campaña:",
+      "type": "select",
+      "val": ["Email Marketing", "Redes Sociales", "SEO/SEM", "Contenido", "Evento", "Publicidad Pagada"]
+    },
+    "canal": {
+      "name": "Canal:",
+      "type": "multiselect",
+      "val": ["Facebook", "Instagram", "Twitter", "LinkedIn", "YouTube", "Email", "Blog", "Google Ads"]
+    },
+    "presupuesto": {
+      "name": "Presupuesto:",
+      "type": "input",
+      "val": "num"
+    },
+    "objetivo": {
+      "name": "Objetivo Principal:",
+      "type": "select",
+      "val": ["Awareness", "Engagement", "Conversión", "Retención", "Lead Generation"]
+    },
+    "publico_objetivo": {
+      "name": "Público Objetivo:",
+      "type": "input",
+      "val": "txt"
+    },
+    "responsable": {
+      "name": "Responsable:",
+      "type": "input",
+      "val": "txt"
+    },
+    "kpi": {
+      "name": "KPI Principal:",
+      "type": "input",
+      "val": "txt"
+    }
+  },
+  "Ventas": {
+    "cliente": {
+      "name": "Nombre del Cliente:",
+      "type": "input",
+      "val": "txt"
+    },
+    "empresa": {
+      "name": "Empresa:",
+      "type": "input",
+      "val": "txt"
+    },
+    "valor_estimado": {
+      "name": "Valor Estimado:",
+      "type": "input",
+      "val": "num"
+    },
+    "probabilidad": {
+      "name": "Probabilidad de Cierre:",
+      "type": "select",
+      "val": ["10%", "25%", "50%", "75%", "90%", "100%"]
+    },
+    "fuente": {
+      "name": "Fuente del Lead:",
+      "type": "select",
+      "val": ["Referido", "Web", "Redes Sociales", "Cold Call", "Evento", "Partner"]
+    },
+    "producto": {
+      "name": "Producto/Servicio:",
+      "type": "input",
+      "val": "txt"
+    },
+    "vendedor": {
+      "name": "Vendedor Asignado:",
+      "type": "input",
+      "val": "txt"
+    },
+    "fecha_cierre_estimada": {
+      "name": "Fecha de Cierre Estimada:",
+      "type": "input",
+      "val": "txt"
+    }
+  },
+  "Reclutamiento": {
+    "posicion": {
+      "name": "Posición:",
+      "type": "input",
+      "val": "txt"
+    },
+    "departamento": {
+      "name": "Departamento:",
+      "type": "select",
+      "val": ["IT", "Ventas", "Marketing", "RRHH", "Finanzas", "Operaciones", "Legal"]
+    },
+    "tipo_contrato": {
+      "name": "Tipo de Contrato:",
+      "type": "select",
+      "val": ["Tiempo Completo", "Medio Tiempo", "Por Proyecto", "Temporal", "Prácticas"]
+    },
+    "nivel": {
+      "name": "Nivel:",
+      "type": "select",
+      "val": ["Junior", "Semi-Senior", "Senior", "Lead", "Manager", "Director"]
+    },
+    "salario_rango": {
+      "name": "Rango Salarial:",
+      "type": "input",
+      "val": "txt"
+    },
+    "candidato": {
+      "name": "Nombre del Candidato:",
+      "type": "input",
+      "val": "txt"
+    },
+    "fuente": {
+      "name": "Fuente:",
+      "type": "select",
+      "val": ["LinkedIn", "Bolsa de Trabajo", "Referido", "Universidad", "Headhunter", "Aplicación Directa"]
+    },
+    "reclutador": {
+      "name": "Reclutador:",
+      "type": "input",
+      "val": "txt"
+    }
+  },
+  "Proyecto": {
+    "nombre_proyecto": {
+      "name": "Nombre del Proyecto:",
+      "type": "input",
+      "val": "txt"
+    },
+    "tipo_proyecto": {
+      "name": "Tipo:",
+      "type": "select",
+      "val": ["Interno", "Cliente", "I+D", "Mejora Continua"]
+    },
+    "sponsor": {
+      "name": "Sponsor:",
+      "type": "input",
+      "val": "txt"
+    },
+    "presupuesto": {
+      "name": "Presupuesto:",
+      "type": "input",
+      "val": "num"
+    },
+    "hitos": {
+      "name": "Hitos Principales:",
+      "type": "input",
+      "val": "none"
+    },
+    "riesgos": {
+      "name": "Riesgos Identificados:",
+      "type": "input",
+      "val": "none"
+    },
+    "pm": {
+      "name": "Project Manager:",
+      "type": "input",
+      "val": "txt"
+    },
+    "status": {
+      "name": "Salud del Proyecto:",
+      "type": "select",
+      "val": ["Verde", "Amarillo", "Rojo"]
+    }
+  },
+  "Mantenimiento": {
+    "tipo_mantenimiento": {
+      "name": "Tipo:",
+      "type": "select",
+      "val": ["Preventivo", "Correctivo", "Predictivo", "Mejora"]
+    },
+    "equipo": {
+      "name": "Equipo/Activo:",
+      "type": "input",
+      "val": "txt"
+    },
+    "ubicacion": {
+      "name": "Ubicación:",
+      "type": "input",
+      "val": "txt"
+    },
+    "frecuencia": {
+      "name": "Frecuencia:",
+      "type": "select",
+      "val": ["Única vez", "Semanal", "Quincenal", "Mensual", "Trimestral", "Semestral", "Anual"]
+    },
+    "prioridad": {
+      "name": "Prioridad:",
+      "type": "select",
+      "val": ["Baja", "Media", "Alta", "Urgente"]
+    },
+    "tecnico": {
+      "name": "Técnico Responsable:",
+      "type": "input",
+      "val": "txt"
+    },
+    "duracion_estimada": {
+      "name": "Duración Estimada (horas):",
+      "type": "input",
+      "val": "num"
+    },
+    "materiales": {
+      "name": "Materiales Necesarios:",
+      "type": "input",
+      "val": "none"
+    }
+  },
+  "Producción": {
+    "orden_produccion": {
+      "name": "Orden de Producción:",
+      "type": "input",
+      "val": "txtnum"
+    },
+    "producto": {
+      "name": "Producto:",
+      "type": "input",
+      "val": "txt"
+    },
+    "cantidad": {
+      "name": "Cantidad:",
+      "type": "input",
+      "val": "num"
+    },
+    "lote": {
+      "name": "Número de Lote:",
+      "type": "input",
+      "val": "txtnum"
+    },
+    "linea_produccion": {
+      "name": "Línea de Producción:",
+      "type": "select",
+      "val": ["Línea 1", "Línea 2", "Línea 3", "Línea 4"]
+    },
+    "turno": {
+      "name": "Turno:",
+      "type": "select",
+      "val": ["Matutino", "Vespertino", "Nocturno"]
+    },
+    "operador": {
+      "name": "Operador Responsable:",
+      "type": "input",
+      "val": "txt"
+    },
+    "calidad": {
+      "name": "Estado de Calidad:",
+      "type": "select",
+      "val": ["Aprobado", "Rechazado", "En Revisión", "Retrabajo"]
+    }
+  },
+  "Custom Simple": {
+    "categoria": {
+      "name": "Categoría:",
+      "type": "input",
+      "val": "txt"
+    },
+    "prioridad": {
+      "name": "Prioridad:",
+      "type": "select",
+      "val": ["Baja", "Media", "Alta"]
+    },
+    "responsable": {
+      "name": "Responsable:",
+      "type": "input",
+      "val": "txt"
+    },
+    "notas": {
+      "name": "Notas:",
+      "type": "input",
+      "val": "none"
+    }
+  }
+}

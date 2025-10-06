@@ -1,0 +1,71 @@
+# Entornos virtuales
+sgtEnv/
+venv/
+env/
+ENV/
+.venv/
+
+# Variables de entorno sensibles
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribución / empaquetado
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyTest
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Base de datos local (si usas SQLite)
+*.db
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Alembic (opcional, depende de tu flujo)
+# alembic/versions/*
+# !alembic/versions/.gitkeep
+
+# Cache de dependencias
+__pypackages__/
+pip-wheel-metadata/
