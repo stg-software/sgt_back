@@ -9,7 +9,11 @@ app = FastAPI(title="SGT_v1 - Backend")
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://sgt-frontend-production.s3-website.us-east-2.amazonaws.com",  # S3 Production
+        "https://*.cloudfront.net",  # CloudFront (futuro)
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
