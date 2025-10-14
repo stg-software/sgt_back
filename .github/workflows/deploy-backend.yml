@@ -75,12 +75,12 @@ jobs:
             
             if [ -d "${{ env.BACKEND_PATH }}" ]; then
               cd ${{ env.BACKEND_PATH }}
-              sudo tar -czf ~/backups/$BACKUP_FILE . \
-                --exclude='venv' \
+              sudo tar --exclude='venv' \
                 --exclude='.git' \
                 --exclude='__pycache__' \
                 --exclude='*.pyc' \
-                --exclude='*.log'
+                --exclude='*.log' \
+                -czf ~/backups/$BACKUP_FILE .
               echo "✅ Backup created successfully"
             else
               echo "⚠️ Backend directory not found, skipping backup"
