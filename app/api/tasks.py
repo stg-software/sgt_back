@@ -1,6 +1,6 @@
 # app/api/tasks.py
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session, attributes  # ✅ AGREGADO: attributes
+from sqlalchemy.orm import Session, attributes
 from typing import List, Dict, Any
 from datetime import datetime
 from app.core.database import SessionLocal
@@ -40,18 +40,18 @@ def add_record_entry(task: Task, user: User, state_name: str, doc: str):
         "doc": doc
     }
     
-    # ✅ CORREGIDO: Asegurar que record sea una lista mutable
+    # Asegurar que record sea una lista mutable
     if task.record is None:
         task.record = []
     elif not isinstance(task.record, list):
         task.record = []
     
-    # ✅ IMPORTANTE: Crear una nueva lista para que SQLAlchemy detecte el cambio
+    # Crear una nueva lista para que SQLAlchemy detecte el cambio
     current_record = list(task.record) if task.record else []
     current_record.append(new_entry)
     task.record = current_record
     
-    # ✅ CRÍTICO: Marcar explícitamente el campo como modificado
+    # Marcar explícitamente el campo como modificado
     attributes.flag_modified(task, "record")
 
 @router.get("", response_model=List[TaskOut])
@@ -121,7 +121,7 @@ def update_task(
     # Aplicar actualizaciones solo a campos permitidos
     update_data = data.model_dump(exclude_unset=True)
     
-    # ✅ NUEVO: Detectar cambios para agregar al historial
+    # Detectar cambios para agregar al historial
     state_changed = False
     old_state_name = task.state.name if task.state else "Sin estado"
     new_state_name = old_state_name
@@ -143,7 +143,7 @@ def update_task(
                 detail=f"No tienes permisos para editar el campo '{field}'"
             )
     
-    # ✅ NUEVO: Agregar entrada al historial si cambió el estado
+    # Agregar entrada al historial si cambió el estado
     if state_changed:
         doc = f"Cambió el estado de '{old_state_name}' a '{new_state_name}'"
         add_record_entry(task, current_user, new_state_name, doc)
@@ -192,10 +192,10 @@ def delete_task(
     )
 
 # ============================================================================
-# ✅ NUEVO: ENDPOINTS PARA GESTIONAR EL HISTORIAL (RECORD)
+# ✅ ENDPOINTS PARA GESTIONAR EL HISTORIAL (RECORD)
 # ============================================================================
 
-@router.post("/{task_id}/record", response_model=TaskOut)
+@router.post("/{task_id}/records", response_model=TaskOut)
 def add_task_record(
     task_id: int,
     record_data: TaskRecordAdd,
@@ -212,13 +212,22 @@ def add_task_record(
     - Agente: ✅ Puede agregar en sus tareas asignadas
     - Visualizador: ❌ No puede agregar
     """
+    print(f"\n{'='*80}")
+    print(f"📝 ADD TASK RECORD - Task ID: {task_id}")
+    print(f"📝 Usuario: {current_user.username} ({current_user.role.name if current_user.role else 'Sin rol'})")
+    print(f"📝 Comentario: {record_data.doc}")
+    
     task = db.query(Task).filter(Task.id == task_id).first()
     
     if not task:
+        print(f"❌ Tarea no encontrada")
+        print(f"{'='*80}\n")
         raise HTTPException(status_code=404, detail="Tarea no encontrada")
     
-    # ✅ ACTUALIZADO: Usar el nuevo método específico para agregar al record
+    # Verificar permisos
     if not PermissionChecker.can_add_record(current_user, task, db):
+        print(f"❌ Sin permisos para agregar comentario")
+        print(f"{'='*80}\n")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permisos para agregar comentarios a esta tarea"
@@ -233,10 +242,13 @@ def add_task_record(
     db.commit()
     db.refresh(task)
     
+    print(f"✅ Comentario agregado exitosamente")
+    print(f"{'='*80}\n")
+    
     return TaskOut.model_validate(task)
 
-@router.get("/{task_id}/record", response_model=List[Dict])
-def get_task_record(
+@router.get("/{task_id}/records", response_model=List[Dict])
+def get_task_records(
     task_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)

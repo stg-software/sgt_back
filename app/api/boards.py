@@ -31,6 +31,8 @@ def list_boards(db: Session = Depends(get_db), current_user: User = Depends(get_
     boards = PermissionChecker.get_user_boards(current_user, db)
     return boards
 
+# Fragmento relevante de app/api/boards.py
+
 @router.post("/", response_model=BoardOut, status_code=status.HTTP_201_CREATED)
 def create_board(
     data: BoardCreate, 
@@ -50,6 +52,7 @@ def create_board(
     
     print(f"✅ Usuario {current_user.username} ({role_name}) creando tablero")
     
+    # Crear el tablero
     board = Board(
         name=data.name, 
         template_id=data.template_id,
@@ -62,6 +65,34 @@ def create_board(
     db.refresh(board)
     
     print(f"✅ Tablero '{board.name}' creado con ID {board.id}")
+    
+    # ✅ NUEVO: Asignar usuarios al tablero si se proporcionaron
+    if data.assigned_user_ids and len(data.assigned_user_ids) > 0:
+        print(f"📋 Asignando {len(data.assigned_user_ids)} usuarios al tablero...")
+        
+        for user_id in data.assigned_user_ids:
+            # Verificar que el usuario existe
+            user_exists = db.query(User).filter(User.id == user_id).first()
+            if not user_exists:
+                print(f"⚠️ Usuario con ID {user_id} no encontrado, saltando...")
+                continue
+            
+            # Verificar que no sea el owner (no tiene sentido asignarlo)
+            if user_id == current_user.id:
+                print(f"⚠️ Saltando owner {user_id} (ya es propietario)")
+                continue
+            
+            # Crear la asignación
+            assignment = BoardAssignment(
+                board_id=board.id,
+                user_id=user_id
+            )
+            db.add(assignment)
+            print(f"  ✅ Usuario {user_id} asignado")
+        
+        db.commit()
+        db.refresh(board)
+        print(f"✅ Asignaciones completadas para tablero {board.id}")
     
     return board
 

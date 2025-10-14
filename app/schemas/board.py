@@ -11,6 +11,7 @@ class BoardCreate(BaseModel):
     template_id: int
     description: Optional[str] = None
     color: Optional[str] = None
+    assigned_user_ids: Optional[List[int]] = []  # ✅ NUEVO: IDs de usuarios a asignar
 
 class TemplateOut(BaseModel):
     id: int
@@ -60,7 +61,7 @@ class BoardOut(BaseModel):
     tasks: List[TaskOut] = []
     template: Optional[TemplateOut] = None
     owner: Optional[OwnerOut] = None
-    assignments: List[BoardAssignmentOut] = []  # ✅ NUEVO
+    assignments: List[BoardAssignmentOut] = []
 
     class Config:
         from_attributes = True
