@@ -1,0 +1,258 @@
+name: Deploy Backend to EC2
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:  # Permite ejecutar manualmente desde GitHub
+
+env:
+  EC2_HOST: 52.14.202.216
+  EC2_USER: ec2-user
+  BACKEND_PATH: /home/ec2-user/SGT_v1/backend
+
+jobs:
+  # Job 1: Verificar que el release comienza con "prod_"
+  check-release:
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+      version: ${{ steps.extract.outputs.version }}
+    steps:
+      - name: Check if release tag starts with prod_
+        id: check
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "✅ Manual deployment triggered"
+          elif [[ "${{ github.event.release.tag_name }}" == prod_* ]]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "✅ Release tag starts with 'prod_' - proceeding with deployment"
+          else
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+            echo "⏭️ Release tag does not start with 'prod_' - skipping deployment"
+          fi
+      
+      - name: Extract version
+        id: extract
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="manual-$(date +%Y%m%d-%H%M%S)"
+          else
+            VERSION="${{ github.event.release.tag_name }}"
+            VERSION="${VERSION#prod_}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Version: $VERSION"
+
+  # Job 2: Deploy Backend a EC2
+  deploy-backend:
+    needs: check-release
+    if: needs.check-release.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key.pem
+          chmod 600 ~/.ssh/deploy_key.pem
+          ssh-keyscan -H ${{ env.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create deployment backup
+        run: |
+          ssh -i ~/.ssh/deploy_key.pem ${{ env.EC2_USER }}@${{ env.EC2_HOST }} << 'EOF'
+            set -e
+            
+            # Crear directorio de backups si no existe
+            mkdir -p ~/backups
+            
+            TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+            BACKUP_FILE="backend-backup-$TIMESTAMP.tar.gz"
+            
+            echo "💾 Creating backup: $BACKUP_FILE"
+            
+            if [ -d "${{ env.BACKEND_PATH }}" ]; then
+              cd ${{ env.BACKEND_PATH }}
+              sudo tar -czf ~/backups/$BACKUP_FILE . \
+                --exclude='venv' \
+                --exclude='.git' \
+                --exclude='__pycache__' \
+                --exclude='*.pyc' \
+                --exclude='*.log'
+              echo "✅ Backup created successfully"
+            else
+              echo "⚠️ Backend directory not found, skipping backup"
+            fi
+          EOF
+
+      - name: Deploy backend code
+        run: |
+          ssh -i ~/.ssh/deploy_key.pem ${{ env.EC2_USER }}@${{ env.EC2_HOST }} << 'EOF'
+            set -e
+            
+            echo "🚀 Starting backend deployment..."
+            echo "================================"
+            
+            cd ${{ env.BACKEND_PATH }}
+            
+            # Mostrar estado actual
+            echo "📦 Current status:"
+            echo "  Branch: $(git branch --show-current 2>/dev/null || echo 'unknown')"
+            echo "  Commit: $(git rev-parse --short HEAD 2>/dev/null || echo 'unknown')"
+            
+            # Fetch latest code
+            echo ""
+            echo "📥 Fetching latest code from GitHub..."
+            git fetch --all --tags --prune
+            
+            # Determinar qué versión checkout
+            if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+              echo "🔄 Manual deployment - using latest from master/main"
+              MAIN_BRANCH=$(git remote show origin | grep 'HEAD branch' | cut -d' ' -f5)
+              git checkout $MAIN_BRANCH
+              git pull origin $MAIN_BRANCH
+            else
+              echo "🔄 Checking out tag: ${{ github.event.release.tag_name }}"
+              git checkout ${{ github.event.release.tag_name }}
+            fi
+            
+            # Mostrar nuevo estado
+            echo ""
+            echo "✅ New status:"
+            echo "  Branch/Tag: $(git describe --tags --always 2>/dev/null || git branch --show-current)"
+            echo "  Commit: $(git rev-parse --short HEAD)"
+            
+            # Activar entorno virtual
+            echo ""
+            echo "🐍 Activating virtual environment..."
+            source venv/bin/activate
+            
+            # Actualizar dependencias
+            echo "📦 Updating dependencies..."
+            pip install -r requirements.txt --quiet --upgrade
+            
+            # Ejecutar migraciones (descomenta si usas Alembic)
+            # echo "🗄️ Running database migrations..."
+            # alembic upgrade head
+            
+            echo ""
+            echo "✅ Code deployment completed!"
+          EOF
+
+      - name: Restart backend service
+        run: |
+          ssh -i ~/.ssh/deploy_key.pem ${{ env.EC2_USER }}@${{ env.EC2_HOST }} << 'EOF'
+            set -e
+            
+            echo "🔄 Restarting backend service..."
+            echo "================================"
+            
+            # Detener servicio
+            sudo systemctl stop sgt_backend
+            
+            # Limpiar procesos zombies (por si acaso)
+            sudo pkill -9 gunicorn 2>/dev/null || true
+            sudo fuser -k 8000/tcp 2>/dev/null || true
+            
+            # Esperar un momento
+            sleep 2
+            
+            # Iniciar servicio
+            sudo systemctl start sgt_backend
+            
+            # Esperar a que inicie
+            echo "⏳ Waiting for service to start..."
+            sleep 10
+            
+            # Verificar estado
+            if sudo systemctl is-active --quiet sgt_backend; then
+              echo "✅ Backend service started successfully"
+            else
+              echo "❌ Backend service failed to start!"
+              echo ""
+              echo "📋 Service status:"
+              sudo systemctl status sgt_backend --no-pager -l || true
+              echo ""
+              echo "📋 Last 30 log lines:"
+              sudo journalctl -u sgt_backend -n 30 --no-pager
+              exit 1
+            fi
+          EOF
+
+      - name: Health check
+        run: |
+          echo "🏥 Performing health check..."
+          echo "================================"
+          
+          MAX_RETRIES=5
+          RETRY_COUNT=0
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            echo "Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES..."
+            
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+              http://${{ env.EC2_HOST }}/api/v1/health 2>/dev/null || echo "000")
+            
+            if [ "$RESPONSE" = "200" ]; then
+              echo "✅ Health check passed - API is responding correctly"
+              
+              # Mostrar health check response
+              echo ""
+              echo "📊 Health check response:"
+              curl -s http://${{ env.EC2_HOST }}/api/v1/health | jq . || true
+              
+              break
+            else
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              echo "⚠️ Status: $RESPONSE"
+              
+              if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                echo "Waiting 5 seconds before retry..."
+                sleep 5
+              fi
+            fi
+          done
+          
+          if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+            echo ""
+            echo "❌ Health check failed after $MAX_RETRIES attempts"
+            echo "⚠️ Deployment may have issues - check logs manually"
+            exit 1
+          fi
+
+      - name: Cleanup SSH keys
+        if: always()
+        run: rm -f ~/.ssh/deploy_key.pem
+
+      - name: Deployment summary
+        if: success()
+        run: |
+          echo ""
+          echo "🎉 DEPLOYMENT SUCCESSFUL!"
+          echo "================================"
+          echo "📦 Version: ${{ needs.check-release.outputs.version }}"
+          echo "🔌 Backend API: http://${{ env.EC2_HOST }}/api/v1"
+          echo "📚 API Docs: http://${{ env.EC2_HOST }}/docs"
+          echo "🏥 Health: http://${{ env.EC2_HOST }}/api/v1/health"
+          echo ""
+          echo "✅ Backend is now running the latest version"
+
+  # Job 3: Notificación en caso de fallo
+  notify-failure:
+    needs: [deploy-backend]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deployment failed notification
+        run: |
+          echo "❌ DEPLOYMENT FAILED"
+          echo "================================"
+          echo "📦 Version: ${{ needs.check-release.outputs.version }}"
+          echo "🔄 Manual rollback may be required"
+          echo ""
+          echo "To rollback:"
+          echo "1. SSH into EC2: ssh -i sgt-key-pair.pem ec2-user@${{ env.EC2_HOST }}"
+          echo "2. Run: ~/rollback.sh"
+          echo "3. Select the previous backup"
