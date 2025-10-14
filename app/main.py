@@ -1,8 +1,11 @@
 # app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from datetime import datetime
+from sqlalchemy import text
 from app.api import tasks, workflow, roles, users, auth, boards, task_fields, analytics
-from app.core.database import Base, engine
+from app.core.database import Base, engine, SessionLocal
 
 app = FastAPI(title="SGT_v1 - Backend")
 
@@ -20,6 +23,30 @@ app.add_middleware(
 
 # Crear tablas si no existen
 Base.metadata.create_all(bind=engine)
+
+# Health Check Endpoint (para CI/CD)
+@app.get("/api/v1/health")
+async def health_check():
+    """Health check endpoint para CI/CD"""
+    try:
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+        db.close()
+        
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "version": "1.0.0",
+            "database": "connected"
+        }
+    except Exception as e:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "unhealthy",
+                "error": str(e)
+            }
+        )
 
 # Routers
 app.include_router(auth.router, prefix="/api/v1")
